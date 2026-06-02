@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cronograma Dinámico del Evento</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f3f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 750px;
+            background-color: #e5def1;
+            border: 12px solid #222;
+            border-radius: 36px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header / Selector de Días */
+        .header {
+            background-color: #c7b8e6;
+            padding: 20px 15px 0 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1a0dab;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .day-selector {
+            display: flex;
+            background-color: #b19fd9;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            overflow: hidden;
+        }
+
+        .day-tab {
+            flex: 1;
+            padding: 12px 5px;
+            text-align: center;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #554375;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .day-tab span {
+            display: block;
+            font-size: 10px;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .day-tab.active {
+            background-color: #1d3557;
+            color: #ffffff;
+        }
+
+        /* Lista de Actividades */
+        .timeline {
+            flex: 1;
+            padding: 5px 0;
+        }
+
+        .event-card {
+            display: flex;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        /* Estados Visuales */
+        .event-card.current {
+            background-color: #1d3557;
+            color: #ffffff;
+        }
+
+        .event-card.past {
+            opacity: 0.6;
+        }
+
+        .time-col {
+            width: 85px;
+            padding: 18px 10px;
+            font-size: 13px;
+            color: #665588;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .event-card.current .time-col {
+            color: #a8dadc;
+        }
+
+        .info-col {
+            flex: 1;
+            padding: 18px 15px 18px 5px;
+            position: relative;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .event-title {
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #3b2a5c;
+            letter-spacing: 0.5px;
+        }
+
+        .event-card.current .event-title {
+            color: #ffffff;
+        }
+
+        .event-desc {
+            font-size: 12.5px;
+            line-height: 1.4;
+            color: #5d4f75;
+        }
+
+        .event-card.current .event-desc {
+            color: #f1faee;
+        }
+
+        /* Badges de Estado */
+        .status-badge {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+
+        .status-badge.current {
+            background-color: #ffffff;
+            color: #1d3557;
+        }
+
+        .status-badge.next {
+            background-color: #ffffff;
+            color: #554375;
+            border: 1px solid #b19fd9;
+        }
+
+        /* Ocultar elementos que no corresponden al día activo */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <!-- Encabezado del Evento -->
+        <div class="header">
+            <h1>Programa</h1>
+            <div class="day-selector">
+                <div class="day-tab" onclick="switchDay('2026-05-27')">Miércoles<span>27 Mayo</span></div>
+                <div class="day-tab active" onclick="switchDay('2026-05-28')">Jueves<span>28 Mayo</span></div>
+                <div class="day-tab" onclick="switchDay('2026-05-29')">Viernes<span>29 Mayo</span></div>
+            </div>
+        </div>
+
+        <!-- Cuerpo del Cronograma -->
+        <div id="timeline" class="timeline">
+            <!-- Las actividades se renderizan dinámicamente con JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Simulación de datos del evento (puedes cambiar la fecha base para probar los estados)
+        // Nota: Para simular el comportamiento exacto de tu imagen del "Jueves 28 de Mayo" a las 11:15 AM:
+        const mockCurrentTime = new Date('2026-05-28T11:15:00');
+
+        const events = [
+            // JUEVES 28 DE MAYO
+            { id: 1, date: '2026-05-28', start: '08:30', end: '09:00', title: 'Ingreso', desc: 'No olvides tu credencial. El ingreso será por la calle Buen Retiro.' },
+            { id: 2, date: '2026-05-28', start: '09:00', end: '10:00', title: 'Meet & Greet', desc: 'Un tiempo para conversar y conocernos en el patio. Si aún no tomaste desayuno tendremos proveedores de comida.' },
+            { id: 3, date: '2026-05-28', start: '10:00', end: '10:20', title: 'Inicio del Programa', desc: 'Bienvenida oficial e introducción a los bloques principales.' },
+            { id: 4, date: '2026-05-28', start: '10:20', end: '11:00', title: 'Sesión 2', desc: 'Iniciamos el programa en el coliseo, te recomendamos ingresar unos minutos antes.' },
+            { id: 5, date: '2026-05-28', start: '11:00', end: '12:00', title: '2 (5 en 1)', desc: 'En este segmento 5 personas exponen por 5 minutos, cada uno sobre un tema específico. Tendremos dos bloques.' },
+            { id: 6, date: '2026-05-28', start: '12:00', end: '13:00', title: 'Sesión 3', desc: 'Esta sesión se lleva a cabo en el coliseo.' },
+            { id: 7, date: '2026-05-28', start: '13:00', end: '14:00', title: 'Almuerzo', desc: 'Puedes salir a almorzar cerca del local, pero recomendamos quedarte y comer en los puestos.' },
+            { id: 8, date: '2026-05-28', start: '14:00', end: '16:45', title: '4 Mesas / 2 Talleres', desc: 'Se desarrollan simultáneamente con una duración de 45 minutos cada uno. Mesas en el patio y talleres en el coliseo.' },
+            
+            // MIÉRCOLES 27 DIAS EXTRA (MOCK)
+            { id: 9, date: '2026-05-27', start: '09:00', end: '12:00', title: 'Acreditación Anticipada', desc: 'Recoge tu pase antes de tiempo y evita filas.' },
+            // VIERNES 29 DIAS EXTRA (MOCK)
+            { id: 10, date: '2026-05-29', start: '10:00', end: '13:00', title: 'Clausura y Conclusiones', desc: 'Cierre del evento y entrega de certificados.' }
+        ];
+
+        let activeDay = '2026-05-28'; // Día seleccionado por defecto
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline');
+            container.innerHTML = '';
+
+            // Filtrar eventos del día seleccionado
+            const filteredEvents = events.filter(e => e.date === activeDay);
+
+            let foundCurrent = false;
+
+            filteredEvents.forEach((event, index) => {
+                const card = document.createElement('div');
+                card.className = 'event-card';
+
+                // Parsear horas
+                const [startH, startM] = event.start.split(':').map(Number);
+                const [endH, endM] = event.end.split(':').map(Number);
+                
+                const eventStart = new Date(event.date + 'T' + event.start + ':00');
+                const eventEnd = new Date(event.date + 'T' + event.end + ':00');
+
+                let statusHtml = '';
+                
+                // Lógica de estados basada en el tiempo simulado
+                if (mockCurrentTime >= eventStart && mockCurrentTime < eventEnd) {
+                    card.classList.add('current');
+                    statusHtml = '<span class="status-badge current">En curso</span>';
+                    foundCurrent = true;
+                } else if (mockCurrentTime < eventStart) {
+                    // Si es el primer evento que viene después del actual
+                    if (foundCurrent && !filteredEvents.slice(0, index).some(e => new Date(e.date+'T'+e.start) > mockCurrentTime)) {
+                        statusHtml = '<span class="status-badge next">Próximo</span>';
+                    } else if (!foundCurrent && index === 0) {
+                        // Resguardo por si ningún evento está "En curso" pero están por venir
+                        statusHtml = '<span class="status-badge next">Próximo</span>';
+                    }
+                } else {
+                    card.classList.add('past');
+                }
+
+                // Formatear hora de despliegue (ej: 11:00am)
+                let displayTime = event.start;
+                const hour = parseInt(displayTime.split(':')[0]);
+                const min = displayTime.split(':')[1];
+                const ampm = hour >= 12 ? 'pm' : 'am';
+                const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+                const timeString = `${formattedHour}:${min}${ampm}`;
+
+                card.innerHTML = `
+                    <div class="time-col">${timeString}</div>
+                    <div class="info-col">
+                        <div class="title-row">
+                            <span class="event-title">${event.title}</span>
+                            ${statusHtml}
+                        </div>
+                        <p class="event-desc">${event.desc}</p>
+                    </div>
+                 animate`;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function switchDay(dateString) {
+            activeDay = dateString;
+            
+            // Actualizar estilo de pestañas
+            const tabs = document.querySelectorAll('.day-tab');
+            tabs.forEach(tab => {
+                if(tab.getAttribute('onclick').includes(dateString)) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            renderTimeline();
+        }
+
+        // Inicializar
+        renderTimeline();
+    </script>
+</body>
+</html>
