@@ -20,7 +20,6 @@
             justify-content: center;
         }
 
-        /* Contenedor Principal Adaptable */
         .cronograma-container {
             width: 100%;
             max-width: 900px;
@@ -31,7 +30,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
 
-        /* Encabezado Fijo */
         .header {
             background-color: #c7b8e6;
             padding: 30px 20px 0 20px;
@@ -49,7 +47,6 @@
             font-weight: 800;
         }
 
-        /* Selector de Días (Ocupa el ancho disponible) */
         .day-selector {
             display: flex;
             background-color: #b19fd9;
@@ -83,7 +80,6 @@
             color: #ffffff;
         }
 
-        /* Lista de Actividades */
         .timeline {
             flex: 1;
             padding: 10px 0;
@@ -96,18 +92,15 @@
             transition: background-color 0.3s;
         }
 
-        /* Estado: En Curso (Fondo azul oscuro, letras blancas) */
         .event-card.current {
             background-color: #1d3557;
             color: #ffffff;
         }
 
-        /* Estado: Actividad ya finalizada */
         .event-card.past {
             opacity: 0.55;
         }
 
-        /* Columna de Horarios */
         .time-col {
             width: 100px;
             padding: 22px 15px;
@@ -122,7 +115,6 @@
             color: #a8dadc;
         }
 
-        /* Columna de Información */
         .info-col {
             flex: 1;
             padding: 22px 20px 22px 10px;
@@ -157,7 +149,6 @@
             color: #f1faee;
         }
 
-        /* Etiquetas de Estado */
         .status-badge {
             font-size: 10px;
             font-weight: 800;
@@ -180,7 +171,6 @@
             border: 1px solid #b19fd9;
         }
 
-        /* Adaptación para pantallas móviles */
         @media (max-width: 600px) {
             .header h1 { font-size: 24px; }
             .day-tab { font-size: 12px; padding: 12px 5px; }
@@ -198,8 +188,8 @@
         <div class="header">
             <h1>Programa</h1>
             <div class="day-selector">
-                <div class="day-tab active" id="tab-2026-06-12" onclick="switchDay('2026-06-12')">Viernes<span>12 Junio</span></div>
-                <div class="day-tab" id="tab-2026-06-13" onclick="switchDay('2026-06-13')">Sábado<span>13 Junio</span></div>
+                <div class="day-tab active" data-date="2026-06-12" onclick="switchDay('2026-06-12')">Viernes<span>12 Junio</span></div>
+                <div class="day-tab" data-date="2026-06-13" onclick="switchDay('2026-06-13')">Sábado<span>13 Junio</span></div>
             </div>
         </div>
 
@@ -207,8 +197,7 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE TUS ACTIVIDADES
-        // Nota: Mantén el formato de fecha '2026-06-12' y de hora 'HH:MM' en 24 horas para que el cálculo funcione.
+        // LISTA DE ACTIVIDADES (Modifica los textos y horas a tu gusto)
         const events = [
             // --- VIERNES 12 DE JUNIO ---
             { date: '2026-06-12', start: '08:00', end: '09:00', title: 'Registro y Acreditación', desc: 'Apertura de puertas y entrega de identificadores en la entrada principal.' },
@@ -222,26 +211,86 @@
             { date: '2026-06-13', start: '12:30', end: '13:00', title: 'Clausura y Premiación', desc: 'Cierre del evento, agradecimientos y entrega de certificaciones.' }
         ];
 
-        // Obtener la fecha del dispositivo para pre-seleccionar el día si coincide con el evento
-        const today = new Date();
-        const formattedToday = today.toISOString().split('T')[0];
-        
-        // Si hoy es 13 de junio, abrir directo esa pestaña; de lo contrario por defecto el día 12
-        let activeDay = (formattedToday === '2026-06-13') ? '2026-06-13' : '2026-06-12';
+        // Día seleccionado por defecto al entrar
+        let activeDay = '2026-06-12';
 
         function renderTimeline() {
             const container = document.getElementById('timeline');
             container.innerHTML = '';
 
-            const now = new Date(); // Hora real del usuario
+            const now = new Date(); 
             const filteredEvents = events.filter(e => e.date === activeDay);
             
             let foundCurrent = false;
+            let foundNext = false;
 
-            filteredEvents.forEach((event, index) => {
+            filteredEvents.forEach((event) => {
                 const card = document.createElement('div');
                 card.className = 'event-card';
 
-                // Generar objetos Date exactos para comparar los tiempos
+                // Crear horas de comparación exactas
                 const eventStart = new Date(`${event.date}T${event.start}:00`);
-                const eventEnd = new Date(`${
+                const eventEnd = new Date(`${event.date}T${event.end}:00`);
+
+                let statusHtml = '';
+                
+                // Determinar el estado
+                if (now >= eventStart && now < eventEnd) {
+                    card.classList.add('current');
+                    statusHtml = '<span class="status-badge current">En curso</span>';
+                    foundCurrent = true;
+                } else if (now < eventStart) {
+                    // Si no hay ningún evento "En curso" actualmente y es el primero del futuro, o si ya pasó el anterior
+                    if (!foundCurrent && !foundNext) {
+                        statusHtml = '<span class="status-badge next">Próximo</span>';
+                        foundNext = true; 
+                    }
+                } else {
+                    card.classList.add('past');
+                }
+
+                // Convertir formato 24h a 12h (am/pm)
+                const [hour, min] = event.start.split(':');
+                const hInt = parseInt(hour);
+                const ampm = hInt >= 12 ? 'pm' : 'am';
+                const formattedHour = hInt % 12 === 0 ? 12 : hInt % 12;
+                const timeString = `${formattedHour}:${min}${ampm}`;
+
+                card.innerHTML = `
+                    <div class="time-col">${timeString}</div>
+                    <div class="info-col">
+                        <div class="title-row">
+                            <span class="event-title">${event.title}</span>
+                            ${statusHtml}
+                        </div>
+                        <p class="event-desc">${event.desc}</p>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function switchDay(dateString) {
+            activeDay = dateString;
+            
+            // Cambiar de forma segura la pestaña activa usando atributos de datos
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                if (tab.getAttribute('data-date') === dateString) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            renderTimeline();
+        }
+
+        // Carga inicial obligatoria
+        renderTimeline();
+        
+        // Comprobación de cambio de estado en tiempo real cada 10 segundos
+        setInterval(renderTimeline, 10000);
+    </script>
+</body>
+</html>
