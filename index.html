@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronograma Oficial INCONDICIONAL</title>
+    <title>Cronograma Oficial del Evento</title>
     <style>
         * {
             box-sizing: border-box;
@@ -15,7 +15,7 @@
         body {
             background-color: #f4f3f8;
             color: #333;
-            padding: 0;
+            padding-bottom: 60px; /* Espacio para que la barra inferior no tape el último evento */
             display: flex;
             justify-content: center;
         }
@@ -28,6 +28,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
         }
 
         .header {
@@ -171,6 +172,43 @@
             border: 1px solid #b19fd9;
         }
 
+        /* --- NUEVA BARRA INFERIOR FIJA --- */
+        .bottom-status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 900px;
+            background-color: #c7b8e6;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 20;
+        }
+
+        .status-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #1a0dab;
+            letter-spacing: 1px;
+        }
+
+        .status-current-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #3b2a5c;
+            text-transform: uppercase;
+            max-width: 70%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         @media (max-width: 600px) {
             .header h1 { font-size: 24px; }
             .day-tab { font-size: 12px; padding: 12px 5px; }
@@ -179,6 +217,8 @@
             .info-col { padding: 18px 15px 18px 5px; }
             .event-title { font-size: 14px; }
             .event-desc { font-size: 12.5px; }
+            .status-label { font-size: 10px; }
+            .status-current-title { font-size: 12px; }
         }
     </style>
 </head>
@@ -186,7 +226,7 @@
 
     <div class="cronograma-container">
         <div class="header">
-            <h1>PROGRAMA INCONDICIONAL</h1>
+            <h1>Programa</h1>
             <div class="day-selector">
                 <div class="day-tab active" data-date="2026-06-12" onclick="switchDay('2026-06-12')">Viernes<span>12 Junio</span></div>
                 <div class="day-tab" data-date="2026-06-13" onclick="switchDay('2026-06-13')">Sábado<span>13 Junio</span></div>
@@ -194,24 +234,27 @@
         </div>
 
         <div id="timeline" class="timeline"></div>
+
+        <div class="bottom-status-bar">
+            <span class="status-label">Evento en curso</span>
+            <span id="live-status-title" class="status-current-title">Cargando...</span>
+        </div>
     </div>
 
     <script>
-        // LISTA DE ACTIVIDADES (Modifica los textos y horas a tu gusto)
         const events = [
             // --- VIERNES 12 DE JUNIO ---
-            { date: '2026-06-12', start: '08:00', end: '09:00', title: 'Registro y Acreditación', desc: 'Apertura de puertas y entrega de identificadores en la entrada principal.' },
-            { date: '2026-06-12', start: '09:00', end: '10:30', title: 'Conferencia de Apertura', desc: 'Bienvenida oficial del evento e introducción a las temáticas del año.' },
+            { date: '2026-06-12', start: '08:00', end: '09:00', title: 'Registro y Acreditación', desc: 'Apertura de puertas y entrega de identificadores.' },
+            { date: '2026-06-12', start: '09:00', end: '10:30', title: 'Conferencia de Apertura', desc: 'Bienvenida oficial del evento e introducción.' },
             { date: '2026-06-12', start: '10:30', end: '11:00', title: 'Coffee Break', desc: 'Espacio para networking en el área del patio.' },
-            { date: '2026-06-12', start: '11:00', end: '13:00', title: 'Panel de Expertos', desc: 'Mesa redonda interactiva con preguntas en vivo de la audiencia.' },
+            { date: '2026-06-12', start: '11:00', end: '13:00', title: 'Panel de Expertos', desc: 'Mesa redonda interactiva.' },
 
             // --- SÁBADO 13 DE JUNIO ---
-            { date: '2026-06-13', start: '09:00', end: '11:00', title: 'Talleres Prácticos', desc: 'Sesiones simultáneas en las salas del segundo nivel.' },
-            { date: '2026-06-13', start: '11:00', end: '12:30', title: 'Presentación de Proyectos', desc: 'Exposición interactiva en el auditorio central.' },
-            { date: '2026-06-13', start: '12:30', end: '13:00', title: 'Clausura y Premiación', desc: 'Cierre del evento, agradecimientos y entrega de certificaciones.' }
+            { date: '2026-06-13', start: '09:00', end: '11:00', title: 'Talleres Prácticos', desc: 'Sesiones simultáneas en las salas.' },
+            { date: '2026-06-13', start: '11:00', end: '12:30', title: 'Presentación de Proyectos', desc: 'Exposición interactiva en el auditorio.' },
+            { date: '2026-06-13', start: '12:30', end: '13:00', title: 'Clausura y Premiación', desc: 'Cierre del evento y certificaciones.' }
         ];
 
-        // Día seleccionado por defecto al entrar
         let activeDay = '2026-06-12';
 
         function renderTimeline() {
@@ -223,24 +266,35 @@
             
             let foundCurrent = false;
             let foundNext = false;
+            let currentActiveEventTitle = "Ninguno en este momento";
 
+            // Primero buscamos globalmente si hay ALGÚN evento en curso hoy para actualizar la barra inferior
+            events.forEach((event) => {
+                const eventStart = new Date(`${event.date}T${event.start}:00`);
+                const eventEnd = new Date(`${event.date}T${event.end}:00`);
+                if (now >= eventStart && now < eventEnd) {
+                    currentActiveEventTitle = event.title;
+                }
+            });
+            
+            // Actualizamos el texto de la barra inferior fija
+            document.getElementById('live-status-title').innerText = currentActiveEventTitle;
+
+            // Renderizamos la lista de la pestaña seleccionada
             filteredEvents.forEach((event) => {
                 const card = document.createElement('div');
                 card.className = 'event-card';
 
-                // Crear horas de comparación exactas
                 const eventStart = new Date(`${event.date}T${event.start}:00`);
                 const eventEnd = new Date(`${event.date}T${event.end}:00`);
 
                 let statusHtml = '';
                 
-                // Determinar el estado
                 if (now >= eventStart && now < eventEnd) {
                     card.classList.add('current');
                     statusHtml = '<span class="status-badge current">En curso</span>';
                     foundCurrent = true;
                 } else if (now < eventStart) {
-                    // Si no hay ningún evento "En curso" actualmente y es el primero del futuro, o si ya pasó el anterior
                     if (!foundCurrent && !foundNext) {
                         statusHtml = '<span class="status-badge next">Próximo</span>';
                         foundNext = true; 
@@ -249,7 +303,6 @@
                     card.classList.add('past');
                 }
 
-                // Convertir formato 24h a 12h (am/pm)
                 const [hour, min] = event.start.split(':');
                 const hInt = parseInt(hour);
                 const ampm = hInt >= 12 ? 'pm' : 'am';
@@ -274,7 +327,6 @@
         function switchDay(dateString) {
             activeDay = dateString;
             
-            // Cambiar de forma segura la pestaña activa usando atributos de datos
             document.querySelectorAll('.day-tab').forEach(tab => {
                 if (tab.getAttribute('data-date') === dateString) {
                     tab.classList.add('active');
@@ -286,10 +338,10 @@
             renderTimeline();
         }
 
-        // Carga inicial obligatoria
+        // Ejecución inicial
         renderTimeline();
         
-        // Comprobación de cambio de estado en tiempo real cada 10 segundos
+        // Comprobación automática de tiempos en segundo plano cada 10 segundos
         setInterval(renderTimeline, 10000);
     </script>
 </body>
