@@ -31,12 +31,11 @@
             position: relative;
         }
 
-        /* Contenedor del Encabezado con Logo */
+        /* --- CORRECCIÓN EN EL ENCABEZADO --- */
         .header {
             background-color: #0d1b2a;
-            padding: 20px 20px 0 20px;
-            position: sticky;
-            top: 0;
+            padding: 10px 20px 0 20px; /* Reducido al mínimo */
+            position: relative; /* YA NO ES STICKY para que no flote tapando la pantalla */
             z-index: 10;
             border-bottom: 2px solid #e63946; /* Borde rosa/rojo encendido de la paleta */
             display: flex;
@@ -44,22 +43,25 @@
             align-items: center;
         }
 
-        /* Estilos para el Logo Responsivo */
+        /* --- REDUCCIÓN DEL TAMAÑO DEL LOGO --- */
         .logo-container {
             width: 100%;
-            max-width: 320px; /* Tamaño máximo ideal para escritorio */
-            padding: 10px 0 20px 0;
+            max-width: 180px; /* Reducido de 320px a 180px para que sea super compacto */
+            height: auto;
+            margin: -20px 0 -10px 0; /* Márgenes negativos para absorber el espacio vacío transparente que trae la imagen */
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
         .logo-img {
             width: 100%;
             height: auto;
             display: block;
-            /* Filtro opcional por si deseas que resalte sobre el fondo oscuro, 
-               pero al ser un PNG limpio con letras oscuras/azules se acoplará de forma nativa */
+            /* Filtro avanzado: convierte las letras oscuras en un tono claro/plateado 
+               para que resalten perfectamente sobre el fondo azul marino */
+            filter: invert(0.9) brightness(1.5);
         }
 
         /* Selector de Días */
@@ -70,6 +72,7 @@
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             overflow: hidden;
+            margin-top: 5px;
         }
 
         .day-tab {
@@ -144,7 +147,7 @@
             transition: background-color 0.3s;
         }
 
-        /* Estado: En Curso (Fondo azul oscuro destacado y borde vino) */
+        /* Estado: En Curso */
         .event-card.current {
             background-color: #0d1b2a;
             box-shadow: inset 4px 0 0 #e63946;
@@ -265,7 +268,7 @@
 
         /* Ajustes Responsivos para Celulares */
         @media (max-width: 600px) {
-            .logo-container { max-width: 220px; padding: 5px 0 15px 0; }
+            .logo-container { max-width: 130px; margin: -15px 0 -5px 0; }
             .day-tab { font-size: 12px; padding: 12px 5px; }
             .day-tab span { font-size: 10px; }
             .col-hora { width: 70px; }
@@ -283,6 +286,7 @@
 <body>
 
     <div class="cronograma-container">
+        <!-- Encabezado Limpio sin Bloqueo de Scroll -->
         <div class="header">
             <div class="logo-container">
                 <img src="Incon copia-1.png" alt="Conferencia Incondicional 2026" class="logo-img">
@@ -293,14 +297,17 @@
             </div>
         </div>
 
+        <!-- Títulos de las Columnas Sobre la Lista -->
         <div class="table-headers">
             <div class="col-hora">Hora</div>
             <div class="col-duracion">Duración</div>
             <div class="col-actividad">Actividad</div>
         </div>
 
+        <!-- Contenedor del Cronograma -->
         <div id="timeline" class="timeline"></div>
 
+        <!-- Barra Inferior de Estado en Tiempo Real -->
         <div class="bottom-status-bar">
             <span class="status-label">Evento en curso</span>
             <span id="live-status-title" class="status-current-title">Buscando actividad...</span>
@@ -310,29 +317,29 @@
     <script>
         // DATOS OFICIALES DE LA CONFERENCIA
         const events = [
-            // --- VIERNES 12 DE JUNIO --- [cite: 13]
-            { date: '2026-06-12', start: '18:00', end: '18:30', duration: '30 min.', title: 'Inscripción', desc: 'Info', mod: 'Martín y Lourdes Hasbum' }, // [cite: 7]
-            { date: '2026-06-12', start: '18:30', end: '19:00', duration: '30 min.', title: 'Video intro + alabanza + coro + danza', desc: 'A.W. + Media', mod: '' }, // [cite: 7]
-            { date: '2026-06-12', start: '19:00', end: '19:45', duration: '45 min.', title: 'Pastor Juan Granados', desc: 'Video intro', mod: '' }, // [cite: 7]
-            { date: '2026-06-12', start: '19:45', end: '20:30', duration: '45 min.', title: 'Pastor Armando Medina', desc: 'Video intro', mod: '' }, // [cite: 7]
-            { date: '2026-06-12', start: '20:30', end: '20:40', duration: '10 min.', title: 'Ofrenda', desc: 'Media', mod: '' }, // [cite: 7]
-            { date: '2026-06-12', start: '20:40', end: '21:00', duration: '20 min.', title: 'Despedida y fotografías en mural', desc: '', mod: '' }, // [cite: 7]
+            // --- VIERNES 12 DE JUNIO ---
+            { date: '2026-06-12', start: '18:00', end: '18:30', duration: '30 min.', title: 'Inscripción', desc: 'Info', mod: 'Martín y Lourdes Hasbum' }, //
+            { date: '2026-06-12', start: '18:30', end: '19:00', duration: '30 min.', title: 'Video intro + alabanza + coro + danza', desc: 'A.W. + Media', mod: '' }, //
+            { date: '2026-06-12', start: '19:00', end: '19:45', duration: '45 min.', title: 'Pastor Juan Granados', desc: 'Video intro', mod: '' }, //
+            { date: '2026-06-12', start: '19:45', end: '20:30', duration: '45 min.', title: 'Pastor Armando Medina', desc: 'Video intro', mod: '' }, //
+            { date: '2026-06-12', start: '20:30', end: '20:40', duration: '10 min.', title: 'Ofrenda', desc: 'Media', mod: '' }, //
+            { date: '2026-06-12', start: '20:40', end: '21:00', duration: '20 min.', title: 'Despedida y fotografías en mural', desc: '', mod: '' }, //
 
-            // --- SÁBADO 13 DE JUNIO --- [cite: 13]
-            { date: '2026-06-13', start: '08:00', end: '08:30', duration: '30 min.', title: 'Inscripción', desc: 'Info', mod: 'Martín y Lourdes Hasbum' }, // [cite: 14]
-            { date: '2026-06-13', start: '08:30', end: '09:00', duration: '30 min.', title: 'Video intro + alabanza + coro + danza', desc: 'A.W. + Media', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '09:00', end: '09:30', duration: '45 min.', title: 'Pastor Alejandro Medina', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '09:30', end: '10:00', duration: '30 min.', title: 'Break', desc: 'Cocina + Ágape Coffee (Pendiente: POS)', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '10:00', end: '11:00', duration: '1 hr.', title: 'Apóstol Edmundo Guillén', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '11:00', end: '12:00', duration: '1 hr.', title: 'Apóstol Misael Argeñal', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '12:00', end: '13:00', duration: '1 hora', title: 'Almuerzo', desc: 'Cocina + Ágape Coffee (Caja con preguntas anónimas)', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '13:00', end: '13:10', duration: '10 min', title: 'Alabanza', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '13:10', end: '14:10', duration: '1 hr.', title: 'Apóstol Edmundo Guillén', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '14:10', end: '14:55', duration: '45 min.', title: 'Foro de liderazgo', desc: 'Apóstol Edmundo Guillén + Apóstol Misael Argeñal + Pastor Armando', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '14:55', end: '15:05', duration: '10 min.', title: 'Danza + dramatización', desc: 'Grupo de danza - El hijo pródigo (instrumental) + video con versículo y conclusión.', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '15:05', end: '16:05', duration: '1 hr.', title: 'Apóstol Misael Argeñal', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '16:05', end: '16:15', duration: '10 min.', title: 'Ofrenda', desc: '', mod: '' }, // [cite: 14]
-            { date: '2026-06-13', start: '16:15', end: '17:00', duration: '45 min.', title: 'Despedida + fotografías', desc: '', mod: '' } // [cite: 14]
+            // --- SÁBADO 13 DE JUNIO ---
+            { date: '2026-06-13', start: '08:00', end: '08:30', duration: '30 min.', title: 'Inscripción', desc: 'Info', mod: 'Martín y Lourdes Hasbum' }, //
+            { date: '2026-06-13', start: '08:30', end: '09:00', duration: '30 min.', title: 'Video intro + alabanza + coro + danza', desc: 'A.W. + Media', mod: '' }, //
+            { date: '2026-06-13', start: '09:00', end: '09:30', duration: '45 min.', title: 'Pastor Alejandro Medina', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '09:30', end: '10:00', duration: '30 min.', title: 'Break', desc: 'Cocina + Ágape Coffee (Pendiente: POS)', mod: '' }, //
+            { date: '2026-06-13', start: '10:00', end: '11:00', duration: '1 hr.', title: 'Apóstol Edmundo Guillén', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '11:00', end: '12:00', duration: '1 hr.', title: 'Apóstol Misael Argeñal', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '12:00', end: '13:00', duration: '1 hora', title: 'Almuerzo', desc: 'Cocina + Ágape Coffee (Caja con preguntas anónimas)', mod: '' }, //
+            { date: '2026-06-13', start: '13:00', end: '13:10', duration: '10 min', title: 'Alabanza', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '13:10', end: '14:10', duration: '1 hr.', title: 'Apóstol Edmundo Guillén', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '14:10', end: '14:55', duration: '45 min.', title: 'Foro de liderazgo', desc: 'Apóstol Edmundo Guillén + Apóstol Misael Argeñal + Pastor Armando', mod: '' }, //
+            { date: '2026-06-13', start: '14:55', end: '15:05', duration: '10 min.', title: 'Danza + dramatización', desc: 'Grupo de danza - El hijo pródigo (instrumental) + video con versículo y conclusión.', mod: '' }, //
+            { date: '2026-06-13', start: '15:05', end: '16:05', duration: '1 hr.', title: 'Apóstol Misael Argeñal', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '16:05', end: '16:15', duration: '10 min.', title: 'Ofrenda', desc: '', mod: '' }, //
+            { date: '2026-06-13', start: '16:15', end: '17:00', duration: '45 min.', title: 'Despedida + fotografías', desc: '', mod: '' } //
         ];
 
         let activeDay = '2026-06-12';
@@ -390,10 +397,10 @@
                 const timeString = `${formattedHour}:${min}${ampm}`;
 
                 card.innerHTML = `
-                    <div class="col-hora">
+                    <div class="col-dash col-hora">
                         <span class="time-display">${timeString}</span>
                     </div>
-                    <div class="col-duracion">
+                    <div class="col-dash col-duracion">
                         <span class="duration-display">${event.duration}</span>
                     </div>
                     <div class="col-actividad">
